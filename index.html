@@ -223,7 +223,6 @@ svg{flex:none}
 .col.ctx{border-left:1px solid var(--border);background:var(--surface-3)}
 .lh{padding:12px 13px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;gap:10px}
 .lh .t{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.lcount{font-size:11.5px;font-weight:700;color:var(--ink-3);background:var(--surface-2);border-radius:20px;padding:1px 8px}
 .searchrow{display:flex;align-items:center;gap:7px}
 .searchrow .search{flex:1;min-width:0}
 .ownsel{flex:none;border:1px solid var(--border);background:var(--surface-2);border-radius:8px;padding:7px 6px;font:inherit;font-size:11.5px;font-weight:600;color:var(--ink-2);outline:none;max-width:112px}
@@ -903,14 +902,17 @@ function taskDetail(c,t){
 }
 
 /* ================= CHAT ================= */
+/* facet predicates — a facet's own filter is excluded when counting it */
+const matchQ=c=>{if(!S.q)return true;const q=S.q.toLowerCase();return c.client.toLowerCase().includes(q)||c.category.toLowerCase().includes(q);};
+const matchOwn=c=>S.own==='all'||ownOf(c)===S.own;
+
 /* everything the active tab + search allow, before the ownership facet */
 function listBase(){
   let l=S.tab==='ALL'?scope().slice()
        :S.tab==='RISK'?scope().filter(c=>!c.closed&&prio(c).p<=2)
        :S.tab==='UNANS'?scope().filter(c=>!c.closed&&!c.msgs.some(m=>m.w==='me'))
        :scope().filter(c=>statusOf(c)===S.tab);
-  if(S.q){const q=S.q.toLowerCase();l=l.filter(c=>c.client.toLowerCase().includes(q)||c.category.toLowerCase().includes(q));}
-  return l;
+  return l.filter(matchQ);
 }
 function listFor(){
   let l=listBase();
@@ -921,11 +923,17 @@ function chat(){
   const l=listFor();
   if(!l.find(x=>x.c.id===S.active))S.active=l[0]?.c.id;
   const c=CHATS.find(x=>x.id===S.active);
-  const cnt={ALL:scope().length,FOLLOWUP:byStatus('FOLLOWUP').length,NEW:byStatus('NEW').length,CLOSURE:byStatus('CLOSURE').length};
+  /* counts share the list's ownership + search filters, so a tab never
+     advertises rows the list won't show */
+  const cbase=scope().filter(c=>matchOwn(c)&&matchQ(c));
+  const cnt={ALL:cbase.length,
+             NEW:cbase.filter(c=>statusOf(c)==='NEW').length,
+             CLOSURE:cbase.filter(c=>statusOf(c)==='CLOSURE').length,
+             FOLLOWUP:cbase.filter(c=>statusOf(c)==='FOLLOWUP').length};
   return `<div class="inbox">
    <div class="col list">
     <div class="lh">
-      <div class="t"><h3>My chats</h3><span class="lcount">${scope().filter(c=>!c.closed).length}</span></div>
+      <div class="t"><h3>My chats</h3></div>
       <div class="searchrow">
         <div class="search">${I.search}<input id="q" placeholder="Search client or category" value="${S.q}"></div>
         ${S.role==='advisor'?ownSel():''}
@@ -1035,11 +1043,15 @@ function send(){
   const rm=document.getElementById('rm')?.checked;
   c.msgs.push({w:'me',t:v,tm:now()});
   if(rm)c.remind=true;
+  /* Sending a response IS a logged action (Annexure E) — both clocks restart.
+     Anti-gaming still holds: openedHrs keeps running toward the 48h close
+     target, and a holding reply keeps the chat in Action pending. */
+  c.hrs=0; c.sinceAction=0; c.pings=0; c.burst=false;
   DAY.replies++;
   render();bot();
   const st=statusOf(c);
   if(st==='FOLLOWUP')toast(isHolding(c)?'Sent — but that reads as a holding reply. Still on you.':'Sent · kept in Action pending','warn',I.bell2);
-  else toast('Sent · moved to Closure pending — close it when done','info',I.check);
+  else toast('Sent · moved to Open sessions — close it when done','info',I.check);
 }
 function modal(h){let s=document.getElementById('scrim');if(!s){s=document.createElement('div');s.id='scrim';s.className='scrim';document.body.appendChild(s);}s.innerHTML=`<div class="modal">${h}</div>`;s.onclick=e=>{if(e.target===s)close();};binds(s);}
 function close(){const s=document.getElementById('scrim');if(s)s.remove();}
@@ -1097,7 +1109,7 @@ function binds(root){root.querySelectorAll('[data-act]').forEach(el=>{const a=el
    c.closed=false;c.reopened=true;c.remind=false;c.hrs=0;c.sinceAction=0;c.openedHrs=Math.min(c.openedHrs,4);
    c.msgs.push({w:'them',t:'One more thing before we wrap up — can you confirm the final number?',tm:now()});
    S.tab='CLOSURE';render();bot();toast('Chat reopened — now in Open session','info',I.reply);}
- else if(a==='clearremind')el.onclick=()=>{const c=cur();c.remind=false;if(isHolding(c))c.msgs.push({w:'sys',t:'Marked as not requiring further action',tm:now()});DAY.cleared++;render();toast('Moved to Closure pending — close it when done','info',I.check);};
+ else if(a==='clearremind')el.onclick=()=>{const c=cur();c.remind=false;if(isHolding(c))c.msgs.push({w:'sys',t:'Marked as not requiring further action',tm:now()});DAY.cleared++;render();toast('Moved to Open sessions — close it when done','info',I.check);};
  else if(a==='savet')el.onclick=()=>{const c=CHATS.find(x=>x.id===el.dataset.c),t=document.getElementById('tt').value.trim();if(!t){document.getElementById('tt').style.borderColor='var(--red)';return;}
    c.tasks.push({id:'t'+Date.now(),title:t,owner:'You',ownerId:'me',status:'OPEN',due:fd(document.getElementById('td').value),pri:document.querySelector('#tp .sb.on')?.dataset.v||'Medium'});close();render();toast('Task added · closure now blocked','',I.lock);}
  else if(a==='saved')el.onclick=()=>{const c=CHATS.find(x=>x.id===el.dataset.c),n=document.getElementById('dn').value.trim();if(!n){document.getElementById('dn').style.borderColor='var(--red)';return;}
