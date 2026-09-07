@@ -4,10 +4,10 @@ Redesign of the advisor + admin chat workflow. Two self-contained HTML files: a 
 
 | File | What it is |
 |---|---|
+| [`SPEC.md`](SPEC.md) | Product spec — problem, hypothesis, scope, acceptance criteria, annexures |
 | [`index.html`](index.html) | Clickable prototype — advisor and admin views |
-| [`spec.html`](spec.html) | Product spec — principles, definitions, 4 phases |
 
-Open either in a browser. No build step, no dependencies.
+`SPEC.md` renders on GitHub and pastes cleanly into Google Docs. Open `index.html` in a browser — no build step, no dependencies.
 
 ---
 
@@ -109,14 +109,14 @@ Open `index.html` and use the **Advisor / Admin** switch in the top bar.
 
 Static site — no build step.
 
-**Vercel:** import the repo at [vercel.com/new](https://vercel.com/new). Framework preset **Other**, build command **empty**, output directory **root**. `vercel.json` just enables clean URLs (`/spec` instead of `/spec.html`).
+**Vercel:** import the repo at [vercel.com/new](https://vercel.com/new). Framework preset **Other**, build command **empty**, output directory **root**. `vercel.json` just enables clean URLs.
 
 Or from the CLI:
 ```bash
 npx vercel --prod
 ```
 
-Routes: `/` → prototype · `/spec` → spec.
+Route: `/` → prototype. The spec lives in `SPEC.md`.
 
 ---
 
