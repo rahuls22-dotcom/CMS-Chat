@@ -162,6 +162,9 @@ svg{flex:none}
 .sech{font-family:var(--display);font-weight:800;font-size:11.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-2);margin:6px 0 12px;display:flex;align-items:center;gap:8px}
 .sech::before{content:"";width:3px;height:14px;background:var(--navy);border-radius:2px}
 .tov{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:26px}
+.tov3{grid-template-columns:repeat(3,1fr)}
+.tcard.mile{cursor:default}
+.tcard.mile:hover{border-color:var(--border);box-shadow:none}
 .tcard{display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:15px 16px;text-align:left;transition:.14s;font:inherit;color:inherit;width:100%}
 .tcard[data-goto]{cursor:pointer}
 .tcard:hover{border-color:var(--border-2);box-shadow:var(--sh-md)}
@@ -557,7 +560,9 @@ let MEETINGS=[
  {id:'m4',time:'17:30',client:'Neha Kulkarni',type:'Regime switch consult',status:'UPCOMING',mom:false,chat:'c4'},
 ];
 const DAY={closed:3,replies:11,cleared:2,avgReply:'3.2h'};
-const ADMIN={docApproval:20,csrTasks:196,firstCall:342}; /* existing tax-admin widgets */
+const ADMIN={docApproval:20,csrTasks:196,firstCall:342};   /* existing tax-admin widgets */
+/* Active milestones pending, by type — advisor dashboard, row 2 */
+const MILESTONES=[['ITR Filing',24,'doc'],['Advance Tax',20,'chart'],['Tax Planning',19,'cal']];
 
 /* other agents' books — appended after CHATS is defined (see bootstrap below) */
 const TEAM_SEED=[
@@ -739,6 +744,9 @@ function dash(){
     ${sboxTask(tasks.length,mom)}
   </div>
 
+  <div class="sech">Active Milestone</div>
+  <div class="tov tov3">${MILESTONES.map(([label,n,ic])=>mileCard(I[ic],label,n)).join('')}</div>
+
   <div class="wgrid two">
     <div class="card">
       <div class="card-h"><h3>${I.alert} At risk</h3>
@@ -751,6 +759,12 @@ function dash(){
 
   <div class="wgrid two">
     ${meetingsCard()}
+  </div>`;
+}
+function mileCard(icon,label,n){
+  return `<div class="tcard mile">
+    <span class="ic">${icon}</span>
+    <span class="tb"><span class="tt">${label}</span><span class="tn"><b class="tnum">${n}</b><span>pending</span></span></span>
   </div>`;
 }
 function momCard(){
