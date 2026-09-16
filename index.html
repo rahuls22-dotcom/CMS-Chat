@@ -330,10 +330,6 @@ svg{flex:none}
 .cbtn{border:0;background:transparent;color:var(--ink-3);padding:2px;border-radius:4px;display:grid;place-items:center;flex:none}
 .cbtn:hover{color:var(--navy);background:var(--tint)}
 /* SLA presentation — shared by dashboard rows */
-.slaline{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;margin:3px 0 2px}
-.slaline b{font-weight:800}
-.slaline.breach{color:var(--red)} .slaline.soon{color:var(--amber)}
-.slaline.ok{color:var(--ink-2)} .slaline.met{color:var(--green-deep)}
 .slas{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
 .sla{font-size:10px;font-weight:800;letter-spacing:.03em;padding:2px 7px;border-radius:3px;white-space:nowrap}
 .sla.breach{background:var(--red-soft);color:var(--red)}
@@ -615,11 +611,6 @@ function closeSla(c){
   if(r<=0)          return {k:'breach',t:'Close SLA breached',d:`${ago(-r)} over`};
   if(r<=RES_SLA*.25)return {k:'soon',  t:'Close SLA due soon',d:`in ${left(r)}`};
   return              {k:'ok',   t:'Close SLA on track', d:`${left(r)} left`};
-}
-/* the more urgent of the two, for a one-line headline */
-function slaHeadline(c){
-  const rank={breach:0,soon:1,ok:2,met:3}, a=replySla(c), b=closeSla(c);
-  return rank[a.k]<=rank[b.k]?a:b;
 }
 /* what is actually outstanding on this chat */
 function pendingWhat(c){
