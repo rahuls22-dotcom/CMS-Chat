@@ -139,9 +139,6 @@ svg{flex:none}
 .ttype.MOM{background:var(--violet-soft);color:var(--violet)}
 .ttype.Workings{background:var(--blue-soft);color:var(--blue)}
 .row.sel{background:var(--surface-2);box-shadow:inset 2px 0 0 var(--navy)}
-.fromb{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink-2);background:var(--blue-soft);border:1px solid var(--border);border-radius:8px;padding:6px 9px}
-.fromb b{color:var(--ink)}
-.clrf{margin-left:auto;border:0;background:transparent;color:var(--blue);font-weight:600;font-size:11px;padding:0}
 .atbl{width:100%;border-collapse:collapse;font-size:12.5px;min-width:640px}
 .atbl th{text-align:left;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);padding:9px 14px;border-bottom:1px solid var(--border);white-space:nowrap}
 .atbl td{padding:10px 14px;border-bottom:1px solid var(--border);white-space:nowrap}
@@ -273,7 +270,6 @@ svg{flex:none}
 .tabs button.on::after{content:"";position:absolute;left:4px;right:4px;bottom:-1.5px;height:2.5px;background:var(--navy);border-radius:2px}
 .tabs button .b{font-size:12.5px;font-weight:800;color:var(--ink-2);font-variant-numeric:tabular-nums;line-height:1.2}
 .tabs button.on .b{color:var(--navy)}
-.tabsub{font-size:11px;font-weight:600;color:var(--ink-3);padding-top:9px}
 .subfilter{display:flex;gap:6px}
 .chipf{border:1px solid var(--border-2);background:var(--surface);color:var(--ink-2);font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px}
 .chipf.on{background:var(--navy);border-color:var(--navy);color:#fff}
@@ -751,7 +747,7 @@ function agentStats(id){
 }
 const teamStats=()=>AGENTS.map(a=>agentStats(a.id)).sort((x,y)=>({r:0,y:1,g:2}[x.flag]-{r:0,y:1,g:2}[y.flag])||y.atRisk-x.atRisk||y.open-x.open);
 
-const S={role:'advisor',view:'dash',active:'c1',tab:'OPEN',client:null,sess:'all',onlyMine:false,q:'',taskType:'all',activeTask:null,from:'',agent:null,own:'all'};
+const S={role:'advisor',view:'dash',active:'c1',tab:'OPEN',client:null,sess:'all',onlyMine:false,q:'',taskType:'all',activeTask:null,agent:null,own:'all'};
 const mine=()=>CHATS.filter(c=>c.advisorId==='me');
 /* whose chats the chat screen is showing: own desk, or an agent's book in admin view */
 const scope=()=>S.role==='admin'?(S.agent?CHATS.filter(c=>c.advisorId===S.agent):CHATS):mine();
@@ -1093,7 +1089,6 @@ function chat(){
        ${['ALL','OPEN','FOLLOWUP'].map(k=>`<button data-tab="${k}" class="${S.tab===k?'on':''}" title="${TABL[k]}">${TABSHORT[k]}<i>${cnt[k]}</i></button>`).join('')}
       </div>
     </div>
-      ${S.from?`<div class="fromb">${I.arrow} Showing <b>${S.from}</b> from your dashboard <button class="clrf" data-clearfrom="1">clear</button></div>`:''}
     <div class="clist">${clients.length?clients.map(urow).join(''):`<div class="empty">${S.own!=='all'?`No ${S.own} chats in this tab. <button class="viewall" data-own="all">Show all</button>`:'Nothing in this tab.'}</div>`}</div>
    </div>
    <div class="rightwrap">
@@ -1304,22 +1299,20 @@ try{document.documentElement.setAttribute('data-theme',localStorage.getItem('pth
 
 function wire(){
  document.querySelectorAll('[data-nav]').forEach(e=>e.onclick=()=>{S.view=e.dataset.nav;render();});
- document.querySelectorAll('[data-role]').forEach(e=>e.onclick=()=>{S.role=e.dataset.role;S.view=S.role==='admin'?'adash':'dash';S.agent=null;S.from='';render();});
+ document.querySelectorAll('[data-role]').forEach(e=>e.onclick=()=>{S.role=e.dataset.role;S.view=S.role==='admin'?'adash':'dash';S.agent=null;render();});
  document.querySelectorAll('[data-agent]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();S.agent=e.dataset.agent;S.view='agent';render();});
  document.querySelectorAll('[data-adminhome]').forEach(e=>e.onclick=()=>{S.view='adash';S.agent=null;render();});
  const t=document.querySelector('[data-act="theme"]');if(t)t.onclick=theme;
- const LBL={FOLLOWUP:'Action pending',OPEN:'Open sessions',ALL:'All chats',RISK:'At risk',UNANS:'Unanswered chats'};
  document.querySelectorAll('[data-allagents]').forEach(e=>e.onclick=()=>{S.view='agents';S.agent=null;render();});
- document.querySelectorAll('[data-goto]').forEach(e=>e.onclick=()=>{S.view='chat';S.tab=e.dataset.goto;S.from=LBL[e.dataset.goto]||'';S.q='';render();});
+ document.querySelectorAll('[data-goto]').forEach(e=>e.onclick=()=>{S.view='chat';S.tab=e.dataset.goto;S.q='';render();});
  document.querySelectorAll('[data-tasks]').forEach(e=>e.onclick=()=>{S.view='tasks';S.taskType='all';render();});
  document.querySelectorAll('[data-task]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();S.activeTask=e.dataset.task;S.view='tasks';render();});
  document.querySelectorAll('[data-ttype]').forEach(e=>e.onclick=()=>{S.taskType=e.dataset.ttype;S.activeTask=null;render();});
- document.querySelectorAll('[data-clearfrom]').forEach(e=>e.onclick=()=>{S.from='';render();});
  document.querySelectorAll('[data-join]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();const m=MEETINGS.find(x=>x.id===e.dataset.join);toast(`Joining ${m.client} — ${m.type}`,'info',I.video);});
  document.querySelectorAll('[data-mom]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();const m=MEETINGS.find(x=>x.id===e.dataset.mom);const c=CHATS.find(x=>x.id===m.chat);
    if(!c.tasks.some(t=>t.type==='MOM'&&t.status==='OPEN'))c.tasks.push({id:'t'+Date.now(),type:'MOM',title:`File MOM — ${m.type}`,owner:'You',ownerId:'me',status:'OPEN',due:'4 Sep 2026',pri:'Medium'});
    m.mom=true;render();toast('MOM task created — find it under Tasks','',I.check);});
- document.querySelectorAll('[data-open]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();const c=CHATS.find(x=>x.id===e.dataset.open);S.active=c.id;S.client=c.client;S.sess='all';S.view='chat';S.tab=c.closed?'ALL':(statusOf(c)==='FOLLOWUP'?'FOLLOWUP':'OPEN');S.from='';render();});
+ document.querySelectorAll('[data-open]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();const c=CHATS.find(x=>x.id===e.dataset.open);S.active=c.id;S.client=c.client;S.sess='all';S.view='chat';S.tab=c.closed?'ALL':(statusOf(c)==='FOLLOWUP'?'FOLLOWUP':'OPEN');render();});
  document.querySelectorAll('[data-client]').forEach(e=>e.onclick=()=>{S.client=e.dataset.client;S.active=null;render();});
  document.querySelectorAll('[data-sess]').forEach(e=>e.onclick=()=>{S.sess=e.dataset.sess;render();});
  document.querySelectorAll('[data-sess-open]').forEach(e=>e.onclick=()=>{S.active=e.dataset.sessOpen;render();bot();});
@@ -1331,7 +1324,7 @@ function wire(){
    toast('Copied '+v,'',I.check);});
  document.querySelectorAll('[data-own]').forEach(e=>e.onclick=()=>{S.own=e.dataset.own;render();});
  const osel=document.getElementById('ownsel');if(osel)osel.onchange=e=>{S.own=e.target.value;render();};
- document.querySelectorAll('[data-tab]').forEach(e=>e.onclick=()=>{S.tab=e.dataset.tab;S.from='';render();});
+ document.querySelectorAll('[data-tab]').forEach(e=>e.onclick=()=>{S.tab=e.dataset.tab;render();});
  document.querySelectorAll('[data-tt]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();const[ci,ti]=e.dataset.tt.split(':');const c=CHATS.find(x=>x.id===ci),k=c.tasks.find(x=>x.id===ti);k.status=k.status==='OPEN'?'DONE':'OPEN';render();toast(k.status==='DONE'?'Task done':'Task reopened','',I.check);});
  const q=document.getElementById('q');if(q)q.oninput=e=>{S.q=e.target.value;const p=q.selectionStart;render();const n=document.getElementById('q');if(n){n.focus();n.setSelectionRange(p,p);}};
  const cm=document.getElementById('cmp');if(cm){const g=()=>{cm.style.height='auto';cm.style.height=Math.min(cm.scrollHeight,110)+'px';};cm.addEventListener('input',g);g();cm.onkeydown=ev=>{if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();send();}};bot();}
