@@ -243,6 +243,9 @@ svg{flex:none}
 .sct{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--ink-3);font-weight:600}
 .sctitle{font-weight:700;font-size:13px;margin:5px 0 4px}
 .sc3{margin-bottom:4px}
+.scwhy{font-size:11px;font-weight:600;color:var(--ink-3);margin-bottom:4px}
+.scard .rail{position:absolute;left:0;top:0;bottom:0;width:3px}
+.urow .r3{display:flex;align-items:center;gap:6px}
 .scprev{font-size:11.5px;color:var(--ink-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .slas.row2{flex-direction:row;gap:5px;align-items:center}
 .urow .pv{color:var(--ink-3)}
@@ -1143,12 +1146,14 @@ function sessPane(u,sess){
   </div>`;
 }
 function sCard(c){
-  const st=statusOf(c), [k,lbl]=STP[st], u=unread(c);
+  const st=statusOf(c), [k,lbl]=STP[st], u=unread(c), p=prio(c);
   return `<div class="scard ${c.id===S.active?'on':''}" data-sess-open="${c.id}">
+    <span class="rail" style="background:${pcol(p.p)}"></span>
     <div class="sc1"><span class="stat-pill ${k}"><span class="d"></span>${lbl}</span>
       <span class="sct">${u?`<span class="unread">${u}</span>`:''}${ago(c.hrs)}</span></div>
     <div class="sctitle">${c.title||c.category}</div>
     <div class="sc3"><span class="tag">${c.category}</span></div>
+    ${c.closed?'':`<div class="scwhy">${p.why}</div>`}
     <div class="scprev">${prev(c)}</div>
   </div>`;
 }
