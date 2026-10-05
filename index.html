@@ -222,7 +222,7 @@ svg{flex:none}
 .inbox3{display:grid;grid-template-columns:300px 1fr;height:calc(100vh - var(--nav-h) - 42px);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh)}
 .rightwrap{display:flex;flex-direction:column;min-width:0}
 .panes{flex:1;display:grid;grid-template-columns:270px 1fr;min-height:0}
-.chdr{display:flex;align-items:center;gap:11px;padding:0 16px;height:74px;border-bottom:1px solid var(--border);background:var(--surface);flex:none}
+.chdr{display:flex;align-items:center;gap:11px;padding:0 16px;height:88px;border-bottom:1px solid var(--border);background:var(--surface);flex:none}
 .chdr-b{min-width:0}
 .chdr .nm{font-family:var(--display);font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .chdr-m{display:flex;gap:14px;margin-top:2px;font-size:11.5px;color:var(--ink-2);flex-wrap:wrap}
@@ -255,12 +255,23 @@ svg{flex:none}
 .col{display:flex;flex-direction:column;min-height:0}
 .col.list{border-right:1px solid var(--border);background:var(--surface-3)}
 .col.ctx{border-left:1px solid var(--border);background:var(--surface-3)}
-.lh-top{padding:0 13px;height:74px;overflow:hidden;border-bottom:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;justify-content:center;gap:7px;flex:none}
+.lh-top{padding:0 13px;height:88px;overflow:hidden;border-bottom:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;justify-content:center;gap:7px;flex:none}
 .lh-tabs{padding:0 12px;height:52px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;flex:none}
 .lh-tabs .segs3{width:100%}
 .chmeta{font-family:var(--sans);font-weight:600;font-size:11px;color:var(--ink-3);margin-left:2px}
 .lh-top .t{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .searchrow{display:flex;align-items:center;gap:7px}
+.agentsel{position:relative;display:inline-flex;align-items:center;min-width:0;border-radius:7px;margin-left:-6px;cursor:pointer;color:var(--ink)}
+.agentsel:hover{background:var(--surface-2)}
+.agentsel{gap:4px;padding:2px 6px}
+.agentsel .atx{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.agentsel svg{flex:none;color:var(--ink-3)}
+.agentsel select{position:absolute;inset:0;width:100%;opacity:0;cursor:pointer;font-size:14px}
+.agentsel:has(select:focus-visible){box-shadow:0 0 0 2px var(--focus)}
+.unrbtn{position:relative;flex:none;width:40px;height:37px;border:1px solid var(--border);background:var(--surface);border-radius:8px;display:grid;place-items:center;color:var(--ink-2);cursor:pointer}
+.unrbtn:hover{border-color:var(--border-2)}
+.unrbtn.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
+.unrbtn .ub{position:absolute;top:-8px;right:-7px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--blue);color:#fff;font-size:10.5px;font-weight:800;display:grid;place-items:center;border:2px solid var(--surface)}
 .searchrow .search{flex:1;min-width:0}
 .ownsel{flex:none;border:1px solid var(--border);background:var(--surface-2);border-radius:8px;padding:7px 4px;font:inherit;font-size:11px;font-weight:700;color:var(--ink-2);outline:none;width:74px}
 .ownsel:focus{border-color:var(--focus)}
@@ -1028,7 +1039,7 @@ function refsView(){
     ${refDrawer()}`;
 }
 
-const S={role:'advisor',view:'dash',active:'c1',tab:'OPEN',client:null,sess:'all',onlyMine:false,q:'',taskType:'all',activeTask:null,agent:null,own:'all',
+const S={role:'advisor',view:'dash',active:'c1',tab:'OPEN',client:null,sess:'all',onlyMine:false,q:'',taskType:'all',activeTask:null,agent:null,unreadOnly:false,own:'all',
   /* sales */ rfCode:'',rfName:'',rfMob:'',rfq:'',fSold:'all',fStat:'all',fBda:'all',fRm:'all',rfOpen:false,nmenu:null};
 const mine=()=>CHATS.filter(c=>c.advisorId==='me');
 /* whose chats the chat screen is showing: own desk, or an agent's book in admin view */
@@ -1219,21 +1230,23 @@ function allAgents(){
   const T=attentionRank(teamStats());
   return `<div class="agrid">
     ${T.map(t=>{
-      const pend=t.nw+t.fu, flagged=t.atRisk>0||t.unatt>0;
+      /* both numbers are exactly what the chat screen shows once scoped to this agent */
+      const book=CHATS.filter(c=>c.advisorId===t.a.id), unr=book.filter(c=>inBucket(c,'NEWMSG')).length;
+      const flagged=t.atRisk>0||t.unatt>0;
       return `<div class="acard ${flagged?'flag':''}" data-agent="${t.a.id}">
-      ${flagged?`<span class="abadge">${pend>9?'9+':pend}</span>`:''}
+      ${unr?`<span class="abadge">${unr>9?'9+':unr}</span>`:''}
       <div class="ahd">
         <div class="apic" style="background:${avc(t.a.name)}">${ini(t.a.name)}</div>
         <div class="ard">
           <div class="anm">${t.a.name}</div>
           <div class="mets">
-            <div class="met"><div class="k">Session</div><div class="v tnum ${flagged?'bad':''}">${t.open}</div></div>
-            <div class="met"><div class="k">Chat</div><div class="v tnum ${flagged?'bad':''}">${pend}</div></div>
+            <div class="met"><div class="k">Session</div><div class="v tnum ${flagged?'bad':''}">${book.length}</div></div>
+            <div class="met"><div class="k">Unread</div><div class="v tnum ${unr?'bad':''}">${unr}</div></div>
           </div>
         </div>
       </div>
-      <div class="aft"><span class="lk" data-agent="${t.a.id}">View All</span>
-        ${flagged?`<span class="lk" data-agent="${t.a.id}">Unread</span>`:''}</div>
+      <div class="aft"><span class="lk" data-agentchat="${t.a.id}">View All</span>
+        ${unr?`<span class="lk" data-agentchat="${t.a.id}" data-unread="1">Unread</span>`:''}</div>
     </div>`}).join('')}
   </div>`;
 }
@@ -1319,6 +1332,7 @@ function taskDetail(c,t){
 /* facet predicates — a facet's own filter is excluded when counting it */
 const matchQ=c=>{if(!S.q)return true;const q=S.q.toLowerCase();return c.client.toLowerCase().includes(q)||c.category.toLowerCase().includes(q);};
 const matchOwn=c=>S.own==='all'||ownOf(c)===S.own;
+const matchUnr=c=>!S.unreadOnly||inBucket(c,'NEWMSG');
 
 /* everything the active tab + search allow, before the ownership facet */
 function listBase(){
@@ -1327,7 +1341,7 @@ function listBase(){
        :S.tab==='RISK'?scope().filter(c=>!c.closed&&prio(c).p<=2)
        :S.tab==='UNANS'?scope().filter(c=>!c.closed&&!c.msgs.some(m=>m.w==='me'))
        :scope().filter(c=>statusOf(c)===S.tab);
-  return l.filter(matchQ);
+  return l.filter(c=>matchQ(c)&&matchUnr(c));
 }
 function listFor(){
   let l=listBase();
@@ -1363,7 +1377,7 @@ function chat(){
                  .sort((x,y)=>(x.closed-y.closed)||prio(x).p-prio(y).p):[];
   if(!sess.some(x=>x.id===S.active))S.active=sess[0]?.id;
   const c=CHATS.find(x=>x.id===S.active);
-  const cbase=scope().filter(x=>matchOwn(x)&&matchQ(x));
+  const cbase=scope().filter(x=>matchOwn(x)&&matchQ(x)&&matchUnr(x));
   const cnt={ALL:cbase.length,
              OPEN:cbase.filter(x=>inBucket(x,'OPEN')).length,
              FOLLOWUP:cbase.filter(x=>inBucket(x,'FOLLOWUP')).length};
@@ -1371,10 +1385,10 @@ function chat(){
   return `<div class="inbox3">
    <div class="col list">
     <div class="lh-top">
-      <div class="t"><h3>Active chats</h3></div>
+      <div class="t">${S.role==='admin'?agentTitle():'<h3>Active chats</h3>'}</div>
       <div class="searchrow">
         <div class="search">${I.search}<input id="q" placeholder="Search clients" value="${S.q}"></div>
-        ${S.role==='advisor'?ownSel():''}
+        ${S.role==='advisor'?ownSel():S.role==='admin'?unreadBtn():''}
       </div>
     </div>
     <div class="lh-tabs">
@@ -1392,6 +1406,22 @@ function chat(){
      </div>
    </div>
   </div>`;
+}
+
+/* admin: the list title says whose chats these are, and switches agent.
+   Arriving from an agent card just pre-selects it; arriving via "Unread" also turns on the unread toggle. */
+const CHEV=sv('<path d="M6 9l6 6 6-6"/>',14);
+function agentTitle(){
+  const opts=[['','All chats'],...AGENTS.map(a=>[a.id,a.name+"'s chats"])];
+  const cur=opts.find(([k])=>(S.agent||'')===k)[1];
+  return `<label class="agentsel" title="Switch agent"><span class="atx">${cur}</span>${CHEV}
+      <select id="agentsel" aria-label="Whose chats">${opts.map(([k,l])=>`<option value="${k}"${(S.agent||'')===k?' selected':''}>${l}</option>`).join('')}</select></label>`;
+}
+/* unread toggle — badge is the unread-session count for whoever the title is set to */
+const MAIL=sv('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',18);
+function unreadBtn(){
+  const n=scope().filter(c=>inBucket(c,'NEWMSG')).length;
+  return `<button class="unrbtn ${S.unreadOnly?'on':''}" id="unrbtn" aria-pressed="${S.unreadOnly}" title="${S.unreadOnly?'Showing unread only':'Show unread only'}">${MAIL}${n?`<span class="ub">${n>99?'99+':n}</span>`:''}</button>`;
 }
 
 /* pane 1 row — a user, not a session */
@@ -1593,7 +1623,7 @@ function theme(){const r=document.documentElement,n=r.getAttribute('data-theme')
 try{document.documentElement.setAttribute('data-theme',localStorage.getItem('pth')||'light')}catch(e){document.documentElement.setAttribute('data-theme','light')}
 
 function wire(){
- document.querySelectorAll('[data-nav]').forEach(e=>e.onclick=()=>{S.view=e.dataset.nav;render();});
+ document.querySelectorAll('[data-nav]').forEach(e=>e.onclick=()=>{S.view=e.dataset.nav;S.agent=null;S.unreadOnly=false;render();});
  /* sales — search, filters, the + Referral modal, and the payout record */
  document.querySelectorAll('[data-nmenu]').forEach(e=>{const t=ev=>{ev.preventDefault();ev.stopPropagation();
    S.nmenu=S.nmenu===e.dataset.nmenu?null:e.dataset.nmenu;render();};
@@ -1638,8 +1668,12 @@ function wire(){
  document.querySelectorAll('[data-nav]').forEach(e=>{const f=e.onclick;e.onclick=ev=>{S.nmenu=null;f&&f(ev);};});
  const rsel=document.getElementById('rolesel');
  if(rsel)rsel.onchange=()=>{S.role=rsel.value;
-   S.view=S.role==='admin'?'adash':S.role==='sa'||S.role==='sx'?'refs':'dash';S.agent=null;S.nmenu=null;render();};
- document.querySelectorAll('[data-agent]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();S.agent=e.dataset.agent;S.view='agent';render();});
+   S.view=S.role==='admin'?'adash':S.role==='sa'||S.role==='sx'?'refs':'dash';S.agent=null;S.unreadOnly=false;S.nmenu=null;render();};
+ document.querySelectorAll('[data-agent]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();S.agent=e.dataset.agent;S.unreadOnly=false;S.view='agent';render();});
+ document.querySelectorAll('[data-agentchat]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();
+   S.agent=e.dataset.agentchat;S.unreadOnly=!!e.dataset.unread;S.view='chat';S.tab='ALL';S.q='';S.own='all';S.client=null;S.active=null;render();});
+ const asel=document.getElementById('agentsel');if(asel)asel.onchange=()=>{S.agent=asel.value||null;S.client=null;S.active=null;render();};
+ const ub=document.getElementById('unrbtn');if(ub)ub.onclick=()=>{S.unreadOnly=!S.unreadOnly;S.client=null;S.active=null;render();};
  document.querySelectorAll('[data-adminhome]').forEach(e=>e.onclick=()=>{S.view='adash';S.agent=null;render();});
  const t=document.querySelector('[data-act="theme"]');if(t)t.onclick=theme;
  document.querySelectorAll('[data-allagents]').forEach(e=>e.onclick=()=>{S.view='agents';S.agent=null;render();});
